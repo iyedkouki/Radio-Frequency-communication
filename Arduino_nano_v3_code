@@ -1,0 +1,62 @@
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+
+#define CE_PIN 9
+#define CSN_PIN 10
+
+RF24 radio(CE_PIN, CSN_PIN);
+const byte addressESP[6] = "ESP32";
+const byte addressNano[6] = "NANO";
+
+void setup() {
+  Serial.begin(9600);
+  
+  if (!radio.begin()) {
+    Serial.println("NRF24L01 non détecté !");
+    while (1);
+  }
+  
+  radio.openWritingPipe(addressESP);
+  radio.openReadingPipe(1, addressNano);
+  radio.setPALevel(RF24_PA_LOW);
+  radio.setDataRate(RF24_250KBPS);
+  radio.startListening();
+  Serial.println("Arduino Nano prêt. Saisissez un message :");
+}
+
+void loop() {
+  // Envoi d'un message saisi dans le moniteur série
+  if (Serial.available()) {
+    String input = Serial.readStringUntil('\n');
+    input.trim();
+    char text[32];
+    input.toCharArray(text, 32);
+    
+    radio.stopListening();
+    if (radio.write(&text, sizeof(text))) {
+      Serial.println("Message envoyé : " + input);
+    } else {
+      Serial.println("Échec de l'envoi.");
+    }
+    radio.startListening();
+  }
+
+  // Réception d'un message
+  if (radio.available()) {
+    char receivedText[32] = "";
+    radio.read(&receivedText, sizeof(receivedText));
+    Serial.print("Message reçu : ");
+    Serial.println(receivedText);
+
+    // Vérification avant d'envoyer l'accusé de réception
+    if (strcmp(receivedText, "Message reçu") != 0) {
+      radio.stopListening();
+      const char ack[] = "Message reçu";
+      if (radio.write(&ack, sizeof(ack))) {
+        Serial.println("Accusé de réception envoyé.");
+      }
+      radio.startListening();
+    }
+  }
+}

@@ -1,4 +1,4 @@
-![Capture d’écran 2024-10-04 193306](https://github.com/user-attachments/assets/3551d1f5-dafe-4b42-99fc-acdd96e34b77)# Radio-Frequency-communication
+# Radio-Frequency-communication
 This project establishes wireless communication between an ESP32 and an Arduino Nano using the NRF24L01 module. The goal is to reliably transmit data, such as controlling LEDs or motors.
 omponents:
 ESP32-WROOM-32.
